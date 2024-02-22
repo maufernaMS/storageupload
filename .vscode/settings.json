@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/acaf6d52-661c-4075-8ce4-3a38dc6ed696/resourceGroups/maufv.com/providers/Microsoft.Web/sites/mfvFE",
+    "appService.deploySubpath": "."
+}
