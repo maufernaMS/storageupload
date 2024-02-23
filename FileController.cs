@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AzureBlobUpload.Controllers
 {
-    [Route("/api/BlobUpload")]
+    [Route("api/BlobUpload")]
     [ApiController]
     public class BlobUploadController : ControllerBase
     {
