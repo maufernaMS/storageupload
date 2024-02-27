@@ -1,44 +1,36 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace AzureBlobUpload.Controllers
+namespace YourNamespace.Controllers
 {
-    [Route("api/BlobUpload")]
+    [Route("api/Upload")]
     [ApiController]
-    public class BlobUploadController : ControllerBase
+    public class UploadController : ControllerBase
     {
-       private const string connectionString = "DefaultEndpointsProtocol=https;AccountName=maufvstorage;AccountKey=sp=racwdli&st=2024-02-23T00:08:28Z&se=2024-02-23T08:08:28Z&spr=https&sv=2022-11-02&sr=c&sig=1Qc6N1od4JXHOFFnq19lkyrsWzXqTeUVm6Fpblm%2FLow%3D==;EndpointSuffix=core.windows.net";
-        private const string containerName = "files";
+        private const string blobContainerName = "maufvstorage;
+        private const string storageConnectionString = "DefaultEndpointsProtocol=https;AccountName=maufvstorage;AccountKey=wsqFtaHDFPjqEQK7h0z7EEXd9NfHETn6kMOioOSmQMx1Qo9lBCfjcRUG0kYt9d1iG8BSzR7hPH7y+AStM9JwuA==";
 
         [HttpPost]
-        public async Task<IActionResult> UploadFile([FromForm] IFormFile file)
+        public async Task<IActionResult> Post(IFormFile file)
         {
-            try
+            BlobServiceClient blobServiceClient = new BlobServiceClient(storageConnectionString);
+            BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(blobContainerName);
+
+            // Create the container if it does not exist.
+            await containerClient.CreateIfNotExistsAsync();
+
+            // Get a reference to a blob
+            BlobClient blobClient = containerClient.GetBlobClient(file.FileName);
+
+            // Open the file and upload its data
+            using (Stream fileStream = file.OpenReadStream())
             {
-                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
-                CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-                CloudBlobContainer container = blobClient.GetContainerReference(containerName);
-
-                await container.CreateIfNotExistsAsync();
-                await container.SetPermissionsAsync(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
-
-                CloudBlockBlob blob = container.GetBlockBlobReference(file.FileName);
-
-                using (Stream fileStream = file.OpenReadStream())
-                {
-                    await blob.UploadFromStreamAsync(fileStream);
-                }
-
-                return Ok("File uploaded successfully");
+                await blobClient.UploadAsync(fileStream, true);
             }
-            catch (StorageException ex)
-            {
-                return StatusCode(500, $"Error uploading file: {ex.Message}");
-            }
+
+            return Ok();
         }
     }
-}
